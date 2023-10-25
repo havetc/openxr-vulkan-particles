@@ -151,6 +151,18 @@ Renderer::Renderer(const Context* context,
     return;
   }
 
+  //create the particle pipeline
+  particlePipeline = 
+      new Pipeline(context, pipelineLayout, headset->getVkRenderPass(), "shaders/particle.vert.spv",
+                 "shaders/particle.frag.spv", { vertexInputBindingDescription },
+                 { vertexInputAttributePosition, vertexInputAttributeNormal, vertexInputAttributeColor });
+  
+  if (!particlePipeline->isValid())
+  {
+    valid = false;
+    return;
+  }
+
   // Create a vertex index buffer
   {
     // Create a staging buffer
@@ -206,6 +218,7 @@ Renderer::~Renderer()
   delete vertexIndexBuffer;
   delete diffusePipeline;
   delete gridPipeline;
+  delete particlePipeline;
 
   const VkDevice device = context->getVkDevice();
   if (device)

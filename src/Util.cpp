@@ -112,6 +112,10 @@ bool util::loadShaderFromFile(VkDevice device, const std::string& filename, VkSh
   shaderModuleCreateInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
   if (vkCreateShaderModule(device, &shaderModuleCreateInfo, nullptr, &shaderModule) != VK_SUCCESS)
   {
+    std::stringstream s;
+    s << "compilation of shader \"" << filename << " failed\"";
+    util::error(Error::GenericVulkan, s.str());
+
     return false;
   }
 

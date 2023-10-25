@@ -3,6 +3,10 @@ set(TARGET_NAME openxr-vulkan-example)
 set(SHADER_SRC
   shaders/Diffuse.vert
   shaders/Diffuse.frag
+  
+  shaders/particle.frag
+  shaders/particle.vert
+  shaders/particle.comp
 
   shaders/Grid.vert
   shaders/Grid.frag
@@ -33,6 +37,9 @@ set(SRC
   MirrorView.h
 
   Model.h
+
+  Particles.h
+  Particles.cpp
 
   Pipeline.cpp
   Pipeline.h
