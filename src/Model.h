@@ -2,6 +2,13 @@
 
 #include <glm/mat4x4.hpp>
 
+enum PipeType
+{
+	Object,
+	Grid,
+	Part //Particle cause a name conflict with struct Particle
+};
+
 /*
  * The model struct holds all required information to orientate and render a model. It handles orientation with a world
  * transformation matrix and has its indexing information populated by the mesh data class. This struct represents a
@@ -11,5 +18,6 @@ struct Model final
 {
   size_t firstIndex = 0u;
   size_t indexCount = 0u;
-  glm::mat4 worldMatrix;
+  glm::mat4 worldMatrix = glm::mat4(1.0f);
+  PipeType type=PipeType::Object;
 };

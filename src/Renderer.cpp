@@ -5,6 +5,7 @@
 #include "Headset.h"
 #include "MeshData.h"
 #include "Model.h"
+#include "Particles.h"
 #include "Pipeline.h"
 #include "RenderProcess.h"
 #include "RenderTarget.h"
@@ -20,8 +21,9 @@ constexpr size_t framesInFlightCount = 2u;
 Renderer::Renderer(const Context* context,
                    const Headset* headset,
                    const MeshData* meshData,
-                   const std::vector<Model*>& models)
-: context(context), headset(headset), models(models)
+                   const std::vector<Model*>& models,
+                   Particles* particles)
+: context(context), headset(headset), models(models), particles(particles)
 {
   const VkDevice device = context->getVkDevice();
 
@@ -151,11 +153,34 @@ Renderer::Renderer(const Context* context,
     return;
   }
 
-  //create the particle pipeline
+  VkVertexInputBindingDescription particleInputBindingDescription;
+  particleInputBindingDescription.binding = 0u;
+  particleInputBindingDescription.stride = sizeof(Particle);
+  particleInputBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+  VkVertexInputAttributeDescription particleInputAttributePosition;
+  particleInputAttributePosition.binding = 0u;
+  particleInputAttributePosition.location = 0u;
+  particleInputAttributePosition.format = VK_FORMAT_R32G32B32_SFLOAT;
+  particleInputAttributePosition.offset = offsetof(Particle, position);
+
+  VkVertexInputAttributeDescription particleInputAttributeSpeed;
+  particleInputAttributeSpeed.binding = 0u;
+  particleInputAttributeSpeed.location = 1u;
+  particleInputAttributeSpeed.format = VK_FORMAT_R32G32B32_SFLOAT;
+  particleInputAttributeSpeed.offset = offsetof(Particle, speed);
+
+  VkVertexInputAttributeDescription particleInputAttributeMass;
+  particleInputAttributeMass.binding = 0u;
+  particleInputAttributeMass.location = 2u;
+  particleInputAttributeMass.format = VK_FORMAT_R32_SFLOAT;
+  particleInputAttributeMass.offset = offsetof(Particle, mass);
+
+  // create the particle pipeline
   particlePipeline = 
       new Pipeline(context, pipelineLayout, headset->getVkRenderPass(), "shaders/particle.vert.spv",
-                 "shaders/particle.frag.spv", { vertexInputBindingDescription },
-                 { vertexInputAttributePosition, vertexInputAttributeNormal, vertexInputAttributeColor });
+                 "shaders/particle.frag.spv", { particleInputBindingDescription },
+                 { particleInputAttributePosition, particleInputAttributeSpeed, particleInputAttributeMass }, false);
   
   if (!particlePipeline->isValid())
   {
@@ -211,6 +236,52 @@ Renderer::Renderer(const Context* context,
   }
 
   indexOffset = meshData->getIndexOffset();
+
+    // Create a particle buffer
+  {
+    // Create a staging buffer
+    const VkDeviceSize bufferSize = static_cast<VkDeviceSize>(particles->getSize());
+    DataBuffer* stagingBuffer =
+      new DataBuffer(context, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, bufferSize);
+    if (!stagingBuffer->isValid())
+    {
+      valid = false;
+      return;
+    }
+
+    // Fill the staging buffer with vertex and index data
+    char* bufferData = static_cast<char*>(stagingBuffer->map());
+    if (!bufferData)
+    {
+      valid = false;
+      return;
+    }
+
+    particles->copyTo(bufferData);
+    stagingBuffer->unmap();
+
+    // Create an empty target buffer
+    particleBuffer = new DataBuffer(context,
+                                       VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, bufferSize);
+    if (!particleBuffer->isValid())
+    {
+      valid = false;
+      return;
+    }
+
+    // Copy from the staging to the target buffer
+    if (!stagingBuffer->copyTo(*particleBuffer, renderProcesses.at(0u)->getCommandBuffer(),
+                               context->getVkDrawQueue()))
+    {
+      valid = false;
+      return;
+    }
+
+    // Clean up the staging buffer
+    delete stagingBuffer;
+  }
 }
 
 Renderer::~Renderer()
@@ -321,6 +392,7 @@ void Renderer::render(const glm::mat4& cameraMatrix, size_t swapchainImageIndex,
   scissor.extent = renderPassBeginInfo.renderArea.extent;
   vkCmdSetScissor(commandBuffer, 0u, 1u, &scissor);
 
+
   // Bind the vertex section of the geometry buffer
   VkDeviceSize vertexOffset = 0u;
   const VkBuffer buffer = vertexIndexBuffer->getBuffer();
@@ -329,8 +401,15 @@ void Renderer::render(const glm::mat4& cameraMatrix, size_t swapchainImageIndex,
   // Bind the index section of the geometry buffer
   vkCmdBindIndexBuffer(commandBuffer, buffer, indexOffset, VK_INDEX_TYPE_UINT32);
 
+  // Bind the particle section of the geometry buffer
+  VkDeviceSize particleOffset = 0u;
+  const VkBuffer particlebuffer = particleBuffer->getBuffer();
+  vkCmdBindVertexBuffers(commandBuffer, 0u, 1u, &particlebuffer, &particleOffset);
+
   // Draw each model
   const VkDescriptorSet descriptorSet = renderProcess->getDescriptorSet();
+
+  size_t modelIndex = 0u;
   for (size_t modelIndex = 0u; modelIndex < models.size(); ++modelIndex)
   {
     const Model* model = models.at(modelIndex);
@@ -343,19 +422,38 @@ void Renderer::render(const glm::mat4& cameraMatrix, size_t swapchainImageIndex,
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0u, 1u, &descriptorSet, 1u,
                             &uniformBufferOffset);
 
-    // Bind the pipeline
-    if (modelIndex == 0u)
+    if (model->type == PipeType::Grid || model->type == PipeType::Object)
     {
-      gridPipeline->bind(commandBuffer);
-    }
-    else if (modelIndex == 1u)
-    {
-      diffusePipeline->bind(commandBuffer);
-    }
+      // Bind the vertex section of the geometry buffer
+      VkDeviceSize vertexOffset = 0u;
+      const VkBuffer buffer = vertexIndexBuffer->getBuffer();
+      vkCmdBindVertexBuffers(commandBuffer, 0u, 1u, &buffer, &vertexOffset);
 
-    vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(model->indexCount), 1u,
-                     static_cast<uint32_t>(model->firstIndex), 0u, 0u);
+      // Bind the index section of the geometry buffer
+      vkCmdBindIndexBuffer(commandBuffer, buffer, indexOffset, VK_INDEX_TYPE_UINT32);
+      if (model->type == PipeType::Grid)
+      {
+        gridPipeline->bind(commandBuffer);
+      }
+      else if (model->type == PipeType::Object)
+      {
+        diffusePipeline->bind(commandBuffer);
+      }
+      vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(model->indexCount), 1u,
+                       static_cast<uint32_t>(model->firstIndex), 0u, 0u);
+    }
+    else if (model->type == PipeType::Part)
+    {
+      // particle special case
+      VkDeviceSize particleOffset = 0u;
+      const VkBuffer particlebuffer = particleBuffer->getBuffer();
+      vkCmdBindVertexBuffers(commandBuffer, 0u, 1u, &particlebuffer, &particleOffset);
+
+      particlePipeline->bind(commandBuffer);
+      vkCmdDraw(commandBuffer, particles->getParticleNumber(), 1, 0, 0);
+    }
   }
+
 
   vkCmdEndRenderPass(commandBuffer);
 }

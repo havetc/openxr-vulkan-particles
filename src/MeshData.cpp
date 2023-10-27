@@ -59,7 +59,12 @@ bool MeshData::loadModel(const std::string& filename,
 
   for (size_t modelIndex = offset; modelIndex < offset + count; ++modelIndex)
   {
-    Model* model = models.at(modelIndex);
+    Model* model = models.at(modelIndex+1);
+    //if (model->type == PipeType::Part)
+    //{
+    //  offset += 1;
+    //  continue;
+    //}
     model->firstIndex = oldIndexCount;
     model->indexCount = indices.size() - oldIndexCount;
   }

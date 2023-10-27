@@ -12,7 +12,8 @@ Pipeline::Pipeline(const Context* context,
                    const std::string& vertexFilename,
                    const std::string& fragmentFilename,
                    const std::vector<VkVertexInputBindingDescription>& vertexInputBindingDescriptions,
-                   const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributeDescriptions)
+                   const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributeDescriptions,
+                   bool triangles)
 : context(context)
 {
   const VkDevice device = context->getVkDevice();
@@ -69,7 +70,15 @@ Pipeline::Pipeline(const Context* context,
   VkPipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo{
     VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO
   };
-  pipelineInputAssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+  if (triangles)
+  {
+    pipelineInputAssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+  }
+  else
+  {
+    pipelineInputAssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+  }
 
   VkPipelineViewportStateCreateInfo pipelineViewportStateCreateInfo{
     VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO

@@ -13,6 +13,7 @@ class MeshData;
 struct Model;
 class Pipeline;
 class RenderProcess;
+class Particles;
 
 /*
  * The renderer class facilitates rendering with Vulkan. It is initialized with a constant list of models to render and
@@ -23,7 +24,7 @@ class RenderProcess;
 class Renderer final
 {
 public:
-  Renderer(const Context* context, const Headset* headset, const MeshData* meshData, const std::vector<Model*>& models);
+  Renderer(const Context* context, const Headset* headset, const MeshData* meshData, const std::vector<Model*>& models, Particles* particles);
   ~Renderer();
 
   void render(const glm::mat4& cameraMatrix, size_t swapchainImageIndex, float time);
@@ -47,7 +48,9 @@ private:
   VkPipelineLayout pipelineLayout = nullptr;
   Pipeline *gridPipeline = nullptr, *diffusePipeline = nullptr, *particlePipeline = nullptr;
   DataBuffer* vertexIndexBuffer = nullptr;
+  DataBuffer* particleBuffer = nullptr;
   std::vector<Model*> models;
+  Particles* particles = nullptr; 
   size_t indexOffset = 0u;
   size_t currentRenderProcessIndex = 0u;
 };

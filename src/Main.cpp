@@ -2,6 +2,7 @@
 #include "Controllers.h"
 #include "Headset.h"
 #include "MeshData.h"
+#include "Particles.h"
 #include "MirrorView.h"
 #include "Model.h"
 #include "Renderer.h"
@@ -49,11 +50,12 @@ int main()
   }
 
   Model gridModel, ruinsModel, carModelLeft, carModelRight, beetleModel, bikeModel, handModelLeft, handModelRight,
-    logoModel;
-  std::vector<Model*> models = { &gridModel, &ruinsModel,    &carModelLeft,   &carModelRight, &beetleModel,
-                                 &bikeModel, &handModelLeft, &handModelRight, &logoModel };
-
-  gridModel.worldMatrix = ruinsModel.worldMatrix = glm::mat4(1.0f);
+    logoModel, particleModel;
+  std::vector<Model*> models = { &particleModel, &gridModel, &ruinsModel,    &carModelLeft,   &carModelRight,
+                                 &beetleModel,   &bikeModel, &handModelLeft, &handModelRight, &logoModel };
+  gridModel.type = PipeType::Grid;
+  particleModel.type = PipeType::Part;
+  gridModel.worldMatrix = ruinsModel.worldMatrix = particleModel.worldMatrix = glm::mat4(1.0f);
   carModelLeft.worldMatrix =
     glm::rotate(glm::translate(glm::mat4(1.0f), { -3.5f, 0.0f, -7.0f }), glm::radians(75.0f), { 0.0f, 1.0f, 0.0f });
   carModelRight.worldMatrix =
@@ -98,7 +100,9 @@ int main()
     return EXIT_FAILURE;
   }
 
-  Renderer renderer(&context, &headset, meshData, models);
+  Particles p;
+
+  Renderer renderer(&context, &headset, meshData, models, &p);
   if (!renderer.isValid())
   {
     return EXIT_FAILURE;

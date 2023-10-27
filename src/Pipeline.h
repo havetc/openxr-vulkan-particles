@@ -20,7 +20,8 @@ public:
            const std::string& vertexFilename,
            const std::string& fragmentFilename,
            const std::vector<VkVertexInputBindingDescription>& vertexInputBindingDescriptions,
-           const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributeDescriptions);
+           const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributeDescriptions,
+           bool triangles = true);
   ~Pipeline();
 
   void bind(VkCommandBuffer commandBuffer) const;

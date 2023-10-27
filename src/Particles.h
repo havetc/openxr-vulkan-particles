@@ -13,12 +13,19 @@ struct Particle
 class Particles
 {
 public:
-  Particles(int particle_number=1000);
+  Particles(int particle_number=10000);
 
   void cpu_update_nbody();
+  size_t getSize() const;
+  unsigned int getParticleNumber() const
+  {
+    return particles.size();
+  }
+
+  void copyTo(char* destination) const;
 
   ~Particles();
 
 protected:
-  std::vector<Particle> particles;
+  std::vector<struct Particle> particles;
 };

@@ -2,12 +2,12 @@
 #include <random>
 
 float TIMESTEP = 0.01f;
-float GRAVITY_CONST = 0.0001;
+float GRAVITY_CONST = 0.0001f;
 
 Particles::Particles(int particle_number) : particles(particle_number)
 {
   std::default_random_engine rndEngine((unsigned)time(nullptr));
-  std::uniform_real_distribution<float> rndDist(-1.0f, 1.0f);
+  std::uniform_real_distribution<float> rndDist(-2.0f, 2.0f);
   std::uniform_real_distribution<float> rndMass(10.0f, 100.0f);
 
   // Initial particle positions
@@ -49,6 +49,16 @@ void Particles::cpu_update_nbody()
   {
     p.position += p.speed * TIMESTEP;
   }
+}
+
+size_t Particles::getSize() const
+{
+  return sizeof(Particle)*particles.size();
+}
+
+void Particles::copyTo(char* destination) const
+{
+  memcpy(destination, particles.data(), getSize()); // Vertex section first
 }
 
 Particles::~Particles()
