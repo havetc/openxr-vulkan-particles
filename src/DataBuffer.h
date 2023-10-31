@@ -19,8 +19,13 @@ public:
   ~DataBuffer();
 
   bool copyTo(const DataBuffer& target, VkCommandBuffer commandBuffer, VkQueue queue) const;
-  void* map() const;
-  void unmap() const;
+  void* map();
+  void unmap();
+
+  void* getData()
+  {
+    return data;
+  }
 
   bool isValid() const;
   VkBuffer getBuffer() const;
@@ -32,4 +37,5 @@ private:
   VkBuffer buffer = nullptr;
   VkDeviceMemory deviceMemory = nullptr;
   VkDeviceSize size = 0u;
+  void* data;
 };

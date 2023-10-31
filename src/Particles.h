@@ -13,7 +13,7 @@ struct Particle
 class Particles
 {
 public:
-  Particles(int particle_number=10000);
+  Particles(int particle_number=1000);
 
   void cpu_update_nbody();
   size_t getSize() const;

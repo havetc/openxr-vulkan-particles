@@ -49,6 +49,7 @@ private:
   Pipeline *gridPipeline = nullptr, *diffusePipeline = nullptr, *particlePipeline = nullptr;
   DataBuffer* vertexIndexBuffer = nullptr;
   DataBuffer* particleBuffer = nullptr;
+  DataBuffer* particleStagingBuffer = nullptr;
   std::vector<Model*> models;
   Particles* particles = nullptr; 
   size_t indexOffset = 0u;

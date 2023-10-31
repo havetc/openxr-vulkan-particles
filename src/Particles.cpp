@@ -1,7 +1,7 @@
 #include "Particles.h"
 #include <random>
 
-float TIMESTEP = 0.01f;
+float TIMESTEP = 0.001f;
 float GRAVITY_CONST = 0.0001f;
 
 Particles::Particles(int particle_number) : particles(particle_number)
@@ -13,7 +13,7 @@ Particles::Particles(int particle_number) : particles(particle_number)
   // Initial particle positions
   for (auto& particle : particles)
   {
-    particle.position = glm::vec3(rndDist(rndEngine), rndDist(rndEngine), rndDist(rndEngine));
+    particle.position = glm::vec3(rndDist(rndEngine), rndDist(rndEngine)+2, rndDist(rndEngine));
     particle.speed = glm::vec3(0.0f);
     particle.mass = rndMass(rndEngine);
   }

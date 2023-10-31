@@ -241,17 +241,17 @@ Renderer::Renderer(const Context* context,
   {
     // Create a staging buffer
     const VkDeviceSize bufferSize = static_cast<VkDeviceSize>(particles->getSize());
-    DataBuffer* stagingBuffer =
+    particleStagingBuffer =
       new DataBuffer(context, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, bufferSize);
-    if (!stagingBuffer->isValid())
+    if (!particleStagingBuffer->isValid())
     {
       valid = false;
       return;
     }
 
     // Fill the staging buffer with vertex and index data
-    char* bufferData = static_cast<char*>(stagingBuffer->map());
+    char* bufferData = static_cast<char*>(particleStagingBuffer->map());
     if (!bufferData)
     {
       valid = false;
@@ -259,7 +259,7 @@ Renderer::Renderer(const Context* context,
     }
 
     particles->copyTo(bufferData);
-    stagingBuffer->unmap();
+    //particleStagingBuffer->unmap();
 
     // Create an empty target buffer
     particleBuffer = new DataBuffer(context,
@@ -272,21 +272,19 @@ Renderer::Renderer(const Context* context,
     }
 
     // Copy from the staging to the target buffer
-    if (!stagingBuffer->copyTo(*particleBuffer, renderProcesses.at(0u)->getCommandBuffer(),
+    if (!particleStagingBuffer->copyTo(*particleBuffer, renderProcesses.at(0u)->getCommandBuffer(),
                                context->getVkDrawQueue()))
     {
       valid = false;
       return;
     }
-
-    // Clean up the staging buffer
-    delete stagingBuffer;
   }
 }
 
 Renderer::~Renderer()
 {
   delete vertexIndexBuffer;
+  delete particleStagingBuffer;
   delete diffusePipeline;
   delete gridPipeline;
   delete particlePipeline;
@@ -323,6 +321,19 @@ Renderer::~Renderer()
 
 void Renderer::render(const glm::mat4& cameraMatrix, size_t swapchainImageIndex, float time)
 {
+
+  const VkBuffer particlebuffer = particleBuffer->getBuffer();
+
+  particles->cpu_update_nbody();
+  particles->copyTo(static_cast<char*>(particleStagingBuffer->getData()));
+  if (!particleStagingBuffer->copyTo(*particleBuffer, renderProcesses.at(0u)->getCommandBuffer(),
+                                     context->getVkDrawQueue()))
+  {
+    valid = false;
+    return;
+  }
+
+
   currentRenderProcessIndex = (currentRenderProcessIndex + 1u) % renderProcesses.size();
 
   RenderProcess* renderProcess = renderProcesses.at(currentRenderProcessIndex);
@@ -403,7 +414,7 @@ void Renderer::render(const glm::mat4& cameraMatrix, size_t swapchainImageIndex,
 
   // Bind the particle section of the geometry buffer
   VkDeviceSize particleOffset = 0u;
-  const VkBuffer particlebuffer = particleBuffer->getBuffer();
+  //const VkBuffer particlebuffer = particleBuffer->getBuffer();
   vkCmdBindVertexBuffers(commandBuffer, 0u, 1u, &particlebuffer, &particleOffset);
 
   // Draw each model
@@ -446,7 +457,7 @@ void Renderer::render(const glm::mat4& cameraMatrix, size_t swapchainImageIndex,
     {
       // particle special case
       VkDeviceSize particleOffset = 0u;
-      const VkBuffer particlebuffer = particleBuffer->getBuffer();
+
       vkCmdBindVertexBuffers(commandBuffer, 0u, 1u, &particlebuffer, &particleOffset);
 
       particlePipeline->bind(commandBuffer);

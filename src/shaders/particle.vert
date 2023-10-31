@@ -28,5 +28,5 @@ void main ()
   outColor = vec4(0.2) + vec4(inSpeed, 0); //trying some speed visualization
   outColor.r *= (inMass / 30.0);
   gl_Position = viewProjection.matrices[gl_ViewIndex] * world.matrix * vec4(inPos, 1.0);
-  gl_PointSize = inMass / (5.0 *(gl_Position.z)); // try mass / 10 mass is between 10 and 100 At the moment
+  gl_PointSize = 4 * sqrt(inMass) / ((gl_Position.z)); // try mass / 10 mass is between 10 and 100 At the moment
 }

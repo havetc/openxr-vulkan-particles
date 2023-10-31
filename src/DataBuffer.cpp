@@ -110,9 +110,8 @@ bool DataBuffer::copyTo(const DataBuffer& target, VkCommandBuffer commandBuffer,
   return true;
 }
 
-void* DataBuffer::map() const
+void* DataBuffer::map()
 {
-  void* data;
   const VkResult result = vkMapMemory(context->getVkDevice(), deviceMemory, 0u, size, 0, &data);
   if (result != VK_SUCCESS)
   {
@@ -123,9 +122,10 @@ void* DataBuffer::map() const
   return data;
 }
 
-void DataBuffer::unmap() const
+void DataBuffer::unmap()
 {
   vkUnmapMemory(context->getVkDevice(), deviceMemory);
+  data = nullptr;
 }
 
 bool DataBuffer::isValid() const
