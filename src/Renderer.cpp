@@ -324,15 +324,17 @@ void Renderer::render(const glm::mat4& cameraMatrix, size_t swapchainImageIndex,
 
   const VkBuffer particlebuffer = particleBuffer->getBuffer();
 
-  particles->cpu_update_nbody();
-  particles->copyTo(static_cast<char*>(particleStagingBuffer->getData()));
-  if (!particleStagingBuffer->copyTo(*particleBuffer, renderProcesses.at(0u)->getCommandBuffer(),
-                                     context->getVkDrawQueue()))
+  if (particles->result_ready())
   {
-    valid = false;
-    return;
+    particles->copyTo(static_cast<char*>(particleStagingBuffer->getData()));
+    if (!particleStagingBuffer->copyTo(*particleBuffer, renderProcesses.at(0u)->getCommandBuffer(),
+                                       context->getVkDrawQueue()))
+    {
+      valid = false;
+      return;
+    }
+    particles->async_update_nbody();
   }
-
 
   currentRenderProcessIndex = (currentRenderProcessIndex + 1u) % renderProcesses.size();
 

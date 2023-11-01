@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <future>
 #include <glm/glm.hpp>
 
 struct Particle
@@ -13,9 +14,16 @@ struct Particle
 class Particles
 {
 public:
-  Particles(int particle_number=1000);
+  Particles(int particle_number=2000);
 
   void cpu_update_nbody();
+
+  void async_update_nbody();
+  bool result_ready()
+  {
+    return !computing;
+  }
+
   size_t getSize() const;
   unsigned int getParticleNumber() const
   {
@@ -28,4 +36,6 @@ public:
 
 protected:
   std::vector<struct Particle> particles;
+  std::atomic_bool computing = false;
+  std::future<void> res;
 };
