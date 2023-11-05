@@ -12,5 +12,6 @@ void main ()
 		discard;
 	}
 	vec3 color = inColor.rgb;
-	outFragColor.rgba = vec4(color, 1.0);
+	float alpha = 1; // test with transparency: clamp(2.5-5*length(gl_PointCoord - vec2(0.5)),0.0,1.0);
+	outFragColor.rgba = vec4(color, alpha);
 }

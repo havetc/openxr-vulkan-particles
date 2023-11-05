@@ -109,7 +109,7 @@ Pipeline::Pipeline(const Context* context,
   pipelineColorBlendAttachmentState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
   pipelineColorBlendAttachmentState.colorBlendOp = VK_BLEND_OP_ADD;
   pipelineColorBlendAttachmentState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-  pipelineColorBlendAttachmentState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+  pipelineColorBlendAttachmentState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
   pipelineColorBlendAttachmentState.alphaBlendOp = VK_BLEND_OP_ADD;
 
   pipelineColorBlendStateCreateInfo.attachmentCount = 1;
