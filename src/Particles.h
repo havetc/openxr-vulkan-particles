@@ -9,6 +9,7 @@ struct Particle
   glm::vec3 position;
   glm::vec3 speed;
   float mass;
+  Particle* fusion = nullptr;
 };
 
 class Particles
