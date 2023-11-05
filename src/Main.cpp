@@ -49,19 +49,12 @@ int main()
     return EXIT_FAILURE;
   }
 
-  Model gridModel, ruinsModel, carModelLeft, carModelRight, beetleModel, bikeModel, handModelLeft, handModelRight,
+  Model gridModel, handModelLeft, handModelRight,
     logoModel, particleModel;
-  std::vector<Model*> models = { &particleModel, &gridModel, &ruinsModel,    &carModelLeft,   &carModelRight,
-                                 &beetleModel,   &bikeModel, &handModelLeft, &handModelRight, &logoModel };
+  std::vector<Model*> models = { &particleModel, &gridModel, &handModelLeft, &handModelRight, &logoModel };
   gridModel.type = PipeType::Grid;
   particleModel.type = PipeType::Part;
-  gridModel.worldMatrix = ruinsModel.worldMatrix = particleModel.worldMatrix = glm::mat4(1.0f);
-  carModelLeft.worldMatrix =
-    glm::rotate(glm::translate(glm::mat4(1.0f), { -3.5f, 0.0f, -7.0f }), glm::radians(75.0f), { 0.0f, 1.0f, 0.0f });
-  carModelRight.worldMatrix =
-    glm::rotate(glm::translate(glm::mat4(1.0f), { 8.0f, 0.0f, -15.0f }), glm::radians(-15.0f), { 0.0f, 1.0f, 0.0f });
-  beetleModel.worldMatrix =
-    glm::rotate(glm::translate(glm::mat4(1.0f), { -3.5f, 0.0f, -0.5f }), glm::radians(-125.0f), { 0.0f, 1.0f, 0.0f });
+  gridModel.worldMatrix = particleModel.worldMatrix = glm::mat4(1.0f);
   logoModel.worldMatrix = glm::translate(glm::mat4(1.0f), { 0.0f, 3.0f, -10.0f });
 
   MeshData* meshData = new MeshData;
@@ -70,35 +63,19 @@ int main()
     return EXIT_FAILURE;
   }
 
-  if (!meshData->loadModel("models/Ruins.obj", MeshData::Color::White, models, 1u, 1u))
+  if (!meshData->loadModel("models/Hand.obj", MeshData::Color::White, models, 1u, 2u))
   {
     return EXIT_FAILURE;
   }
 
-  if (!meshData->loadModel("models/Car.obj", MeshData::Color::White, models, 2u, 2u))
+  if (!meshData->loadModel("models/Logo.obj", MeshData::Color::White, models, 3u, 1u))
   {
     return EXIT_FAILURE;
   }
 
-  if (!meshData->loadModel("models/Beetle.obj", MeshData::Color::White, models, 4u, 1u))
-  {
-    return EXIT_FAILURE;
-  }
+  //Set initial position
+  cameraMatrix = glm::translate(cameraMatrix, glm::vec3(0,-1,-2.5));
 
-  if (!meshData->loadModel("models/Bike.obj", MeshData::Color::White, models, 5u, 1u))
-  {
-    return EXIT_FAILURE;
-  }
-
-  if (!meshData->loadModel("models/Hand.obj", MeshData::Color::White, models, 6u, 2u))
-  {
-    return EXIT_FAILURE;
-  }
-
-  if (!meshData->loadModel("models/Logo.obj", MeshData::Color::White, models, 8u, 1u))
-  {
-    return EXIT_FAILURE;
-  }
 
   Particles p;
 
@@ -160,8 +137,10 @@ int main()
       handModelRight.worldMatrix = inverseCameraMatrix * controllers.getPose(1u);
       handModelRight.worldMatrix = glm::scale(handModelRight.worldMatrix, { -1.0f, 1.0f, 1.0f });
 
+      /* Example of moving a model by editing its world matrix.
       bikeModel.worldMatrix =
         glm::rotate(glm::translate(glm::mat4(1.0f), { 0.5f, 0.0f, -4.5f }), time * 0.2f, { 0.0f, 1.0f, 0.0f });
+      */
 
       // Render
       renderer.render(cameraMatrix, swapchainImageIndex, time);

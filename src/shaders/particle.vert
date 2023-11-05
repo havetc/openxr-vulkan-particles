@@ -29,8 +29,9 @@ void main ()
   outColor.g *= inMass / 50.0;
   outColor.b *= inMass / 20.0;
   outColor = clamp(outColor,vec4(0),vec4(1));
-  outColor.g -= clamp(0.2*(inMass-70)/30,0,1);
-  outColor.r -= clamp(0.4*(inMass-70)/30,0,1);
+  float oversize = clamp(2-log(inMass)/6,0,1);
+  outColor.g -= clamp(0.2*(inMass-70)/30,0,oversize);
+  outColor.r -= clamp(0.4*(inMass-70)/30,0,oversize);
   gl_Position = viewProjection.matrices[gl_ViewIndex] * world.matrix * vec4(inPos, 1.0);
   //point size depending on the distance!!
   gl_PointSize = 4 * pow(inMass,1.0/3.0) / ((gl_Position.z)); // try mass / 10 mass is between 10 and 100 At the moment
