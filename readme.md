@@ -1,6 +1,35 @@
-![Teaser](teaser.gif)
+Forked from [janhsimon's openxr-vulkan-example](https://github.com/janhsimon/openxr-vulkan-example), original Readme at the end
 
 # Overview
+
+This project is an example of n-body particle rendering with a simple point pipeline rendering. It features:
+
+- A shader computing a "realistic" mass / size ratio, with a radius proportional to the cube root of the mass.
+- At the moment, a simple brute force n-body computation simulating gravity.
+- Simulation of merging particles: to avoid simulation collapse when two particles are really close (which often cause
+both of them to be shoot out really fast), two close particles are merged
+
+# Merging mechanism
+
+At the moment, the merging criteria is a fixed minimum distance between particles. A better approach would be to find a criteria
+which takes into account the mass, so that two heavy bodies or one heavy and one small body merge at a further distance than two
+small particles.
+
+The implementation is not optimised and quite trivial: the heavier particle is given the sum of the mass and inertia of the two
+coming particles, and the smallest one is set a mass of zero, and then ignored in the rest of the simulation. This can become
+very sparse after a while, but it avoids changing some buffer and gpu buffer sizes, and the simulation still becomes a bit faster
+as null mass particles are skipped.
+
+# Precision about build
+
+The repository already contains libs for windows: the external dependencies are thus not expected to be build. However, they
+seems to be given in release mode, so trying to create a Debug build could be problematic.
+
+# Original Readme
+
+![Teaser](teaser.gif)
+
+## Overview
 
 This project demonstrates how you can write your own VR application using OpenXR and Vulkan. These are its main features:
 
@@ -17,14 +46,14 @@ Integrating both OpenXR and Vulkan yourself can be a daunting and painfully time
 2. Reference the code while writing your own implementation from scratch, to help you out if you are stuck with a problem, or simply for inspiration.
 
 
-# Running the OpenXR Vulkan Example
+## Running the OpenXR Vulkan Example
 
 1. Download the latest [release](https://github.com/janhsimon/openxr-vulkan-example/releases) (once available) or build the project yourself with the steps below.
 2. Make sure your headset is connected to your computer.
 3. Run the program!
 
 
-# Building the OpenXR Vulkan Example
+## Building the OpenXR Vulkan Example
 
 1. Install the [Vulkan SDK](https://vulkan.lunarg.com) version 1.3 or newer.
 2. Install [CMake](https://cmake.org/download) version 3.1 or newer.
@@ -34,7 +63,7 @@ Integrating both OpenXR and Vulkan yourself can be a daunting and painfully time
 The repository includes binaries for all dependencies except the Vulkan SDK on Windows. These can be found in the `external` folder. You will have to build these dependencies yourself on other platforms. Use the adress and version tag or commit hash in `version.txt` to ensure compatibility. Please don't hesitate to open a pull request if you have built dependencies for previously unsupported platforms.
 
 
-# Attributions
+## Attributions
 
 | Asset | Title | Author | License |
 | --- | --- | --- | --- |
