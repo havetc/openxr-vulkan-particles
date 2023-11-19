@@ -10,7 +10,18 @@ struct Particle
   glm::vec3 speed;
   float mass;
   Particle* fusion = nullptr;
+
+  Particle operator+(const Particle& p) const
+  {
+    Particle res;
+    res.position = (p.mass * p.position + mass * position) / (p.mass + mass);
+    res.speed = (p.mass * p.speed + mass * speed) / (p.mass + mass);
+    res.mass = p.mass + mass;
+    return res;
+  }
+
 };
+
 
 class Particles
 {

@@ -38,6 +38,9 @@ set(SRC
 
   Model.h
 
+  Octree.h
+  Octree.cpp
+
   Particles.h
   Particles.cpp
 
